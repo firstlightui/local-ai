@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Planning-stage prerequisites only. Add pinned PHP/Composer and Android
+# toolchains when the native feasibility milestone establishes their versions.
+# iOS builds and physical-device verification require a Mac with Xcode.
+started=$SECONDS
+printf 'Checking planning-stage orb prerequisites...\n'
+
+packages=()
+for package in ca-certificates curl git jq shellcheck; do
+    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok installed'; then
+        packages+=("$package")
+    fi
+done
+
+if ((${#packages[@]})); then
+    if ((EUID == 0)); then
+        apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
+    else
+        sudo -n apt-get update
+        sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
+    fi
+fi
+
+for tool in git curl jq shellcheck; do
+    command -v "$tool" >/dev/null
+done
+
+printf 'Planning-stage orb setup ready in %ss. No application dependencies or services are defined yet.\n' "$((SECONDS - started))"

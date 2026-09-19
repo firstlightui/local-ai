@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# No services or per-thread authentication are required at the planning stage.
+# Keep future resume work fast; install dependencies in setup instead.
+printf 'Planning-stage orb resumed; no services to reconnect.\n'

@@ -33,10 +33,14 @@ final class Probe
         }
 
         $response = json_decode(nativephp_call($function, json_encode($parameters)), true);
-        if (! is_array($response) || ($response['success'] ?? false) !== true) {
-            throw new RuntimeException($response['error']['message'] ?? 'Native probe call failed.');
+        if (! is_array($response)) {
+            throw new RuntimeException('Native probe call failed.');
         }
 
-        return $response['data'] ?? [];
+        if (($response['status'] ?? null) === 'error') {
+            throw new RuntimeException($response['message'] ?? 'Native probe call failed.');
+        }
+
+        return $response;
     }
 }

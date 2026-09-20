@@ -77,11 +77,11 @@ final class Home extends NativeComponent
             return;
         }
 
-        $this->status = $phase === null ? $status : "{$status}: {$phase}";
-        if ($text !== null) {
+        $this->status = $phase === null || $phase === '' ? $status : "{$status}: {$phase}";
+        if ($text !== null && $text !== '') {
             $this->output = $text;
         }
-        if ($error !== null) {
+        if ($error !== null && $error !== '') {
             $this->output = $error;
         }
     }

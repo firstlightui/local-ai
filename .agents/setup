@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Planning-stage prerequisites only. Add pinned PHP/Composer and Android
-# toolchains when the native feasibility milestone establishes their versions.
-# iOS builds and physical-device verification require a Mac with Xcode.
 started=$SECONDS
-printf 'Checking planning-stage orb prerequisites...\n'
+printf 'Checking NativePHP Local AI feasibility prerequisites...\n'
 
 packages=()
-for package in ca-certificates curl git jq shellcheck; do
+for package in ca-certificates curl git gnupg jq openjdk-17-jdk-headless rsync shellcheck unzip; do
     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -qx 'install ok installed'; then
         packages+=("$package")
     fi
@@ -24,8 +21,62 @@ if ((${#packages[@]})); then
     fi
 fi
 
-for tool in git curl jq shellcheck; do
+if ! dpkg-query -W -f='${Status}' debsuryorg-archive-keyring 2>/dev/null | grep -qx 'install ok installed'; then
+    curl -fsSL -o /tmp/debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
+    printf '%s  %s\n' \
+        '7511384559c9ddf1d5ce5f60be429ae9d4e7d01d9480d6f1b7a30c0810cf8b60' \
+        /tmp/debsuryorg-archive-keyring.deb | sha256sum -c -
+    sudo -n dpkg -i /tmp/debsuryorg-archive-keyring.deb
+fi
+
+if [[ ! -f /etc/apt/sources.list.d/php.list ]]; then
+    printf 'deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ bookworm main\n' \
+        | sudo -n tee /etc/apt/sources.list.d/php.list >/dev/null
+fi
+
+if ! command -v php8.4 >/dev/null; then
+    sudo -n apt-get update
+    sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        php8.4-cli php8.4-curl php8.4-mbstring php8.4-sqlite3 php8.4-xml php8.4-zip
+    sudo -n update-alternatives --set php /usr/bin/php8.4
+fi
+
+if ! command -v composer >/dev/null || [[ "$(composer --version 2>/dev/null)" != *'2.10.3'* ]]; then
+    curl -fsSL -o /tmp/composer.phar https://getcomposer.org/download/2.10.3/composer.phar
+    printf '%s  %s\n' \
+        '7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6' \
+        /tmp/composer.phar | sha256sum -c -
+    sudo -n install -m 0755 /tmp/composer.phar /usr/local/bin/composer
+fi
+
+android_home=/opt/android-sdk
+commandline_tools="${android_home}/cmdline-tools/23.0/bin/sdkmanager"
+if [[ ! -x "${commandline_tools}" ]]; then
+    curl -fsSL -o /tmp/android-commandline-tools.zip \
+        https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
+    printf '%s  %s\n' \
+        '0877a1d048fe4a24efe2eff536ca4223f7adeb58648bb81909d33c446918cfa8' \
+        /tmp/android-commandline-tools.zip | sha256sum -c -
+    rm -rf /tmp/android-commandline-tools
+    mkdir -p /tmp/android-commandline-tools
+    sudo -n mkdir -p "${android_home}/cmdline-tools"
+    unzip -q /tmp/android-commandline-tools.zip -d /tmp/android-commandline-tools
+    sudo -n mv /tmp/android-commandline-tools/cmdline-tools "${android_home}/cmdline-tools/23.0"
+    sudo -n chown -R "$(id -u):$(id -g)" "${android_home}"
+fi
+
+yes | "${commandline_tools}" --licenses >/dev/null || true
+"${commandline_tools}" \
+    'platform-tools' \
+    'platforms;android-36' \
+    'build-tools;36.0.0' \
+    'ndk;27.0.12077973' \
+    'ndk;29.0.13113456' \
+    'cmake;3.22.1' \
+    'cmake;3.31.6'
+
+for tool in git curl jq shellcheck php composer java; do
     command -v "$tool" >/dev/null
 done
 
-printf 'Planning-stage orb setup ready in %ss. No application dependencies or services are defined yet.\n' "$((SECONDS - started))"
+printf 'Feasibility orb setup ready in %ss. iOS builds and physical-device checks still require a Mac.\n' "$((SECONDS - started))"

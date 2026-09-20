@@ -1,0 +1,72 @@
+{
+  "namespace": "LocalAIFeasibility",
+  "platforms": ["ios", "android"],
+  "bridge_functions": [
+    {
+      "name": "LocalAIProbe.Start",
+      "ios": "LocalAIProbeFunctions.Start",
+      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.Start",
+      "android_params": ["context"]
+    },
+    {
+      "name": "LocalAIProbe.Cancel",
+      "ios": "LocalAIProbeFunctions.Cancel",
+      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.Cancel",
+      "android_params": ["context"]
+    },
+    {
+      "name": "LocalAIProbe.Unload",
+      "ios": "LocalAIProbeFunctions.Unload",
+      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.Unload",
+      "android_params": ["context"]
+    },
+    {
+      "name": "LocalAIProbe.SetBackgrounded",
+      "ios": "LocalAIProbeFunctions.SetBackgrounded",
+      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.SetBackgrounded",
+      "android_params": ["context"]
+    }
+  ],
+  "events": [
+    "NativePHP\\LocalAI\\Probe\\Events\\ProbeDelta",
+    "NativePHP\\LocalAI\\Probe\\Events\\ProbeTerminal"
+  ],
+  "ios": {
+    "min_version": "18.0",
+    "init_function": "initializeLocalAIProbe",
+    "sources": ["LocalAIProbeFunctions.swift", "LocalAIProbeLifecycle.swift", "LocalAIProbeRuntime.swift"],
+    "dependencies": {
+      "swift_packages": [
+        {
+          "url": "https://github.com/ml-explore/mlx-swift-lm",
+          "version": "3.31.4",
+          "products": ["MLXLLM", "MLXLMCommon", "MLXHuggingFace"]
+        },
+        {
+          "url": "https://github.com/huggingface/swift-transformers",
+          "version": "1.3.4",
+          "products": ["Tokenizers"]
+        },
+        {
+          "url": "https://github.com/ml-explore/mlx-swift",
+          "version": "0.31.6",
+          "products": ["MLX"]
+        }
+      ]
+    }
+  },
+  "android": {
+    "init_function": "com.nativephp.localai.probe.initializeLocalAIProbe",
+    "min_version": 29,
+    "dependencies": {
+      "implementation": [
+        "com.nativephp.localai:llama-android-probe:0.1.0"
+      ]
+    },
+    "repositories": [
+      {
+        "url": "$rootDir/localai-maven"
+      }
+    ]
+  }
+}

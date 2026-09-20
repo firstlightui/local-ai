@@ -1,0 +1,327 @@
+diff --git a/examples/llama.android/gradle/libs.versions.toml b/examples/llama.android/gradle/libs.versions.toml
+index 8ff2afd40..e2a73f8d6 100644
+--- a/examples/llama.android/gradle/libs.versions.toml
++++ b/examples/llama.android/gradle/libs.versions.toml
+@@ -2,7 +2,7 @@
+
+ # Plugins
+ agp = "8.13.2"
+-kotlin = "2.3.0"
++kotlin = "2.0.0"
+
+ # AndroidX
+ activity = "1.12.2"
+diff --git a/examples/llama.android/lib/build.gradle.kts b/examples/llama.android/lib/build.gradle.kts
+index ae95f41..ec78caf 100644
+--- a/examples/llama.android/lib/build.gradle.kts
++++ b/examples/llama.android/lib/build.gradle.kts
+@@ -1,6 +1,7 @@
+ plugins {
+     alias(libs.plugins.android.library)
+     alias(libs.plugins.jetbrains.kotlin.android)
++    `maven-publish`
+ }
+
+ android {
+@@ -10,7 +11,7 @@ android {
+     ndkVersion = "29.0.13113456"
+
+     defaultConfig {
+-        minSdk = 33
++        minSdk = 29
+
+         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+         consumerProguardFiles("consumer-rules.pro")
+@@ -70,6 +71,25 @@ android {
+     }
+ }
+
++afterEvaluate {
++    publishing {
++        publications {
++            create<MavenPublication>("release") {
++                groupId = "com.nativephp.localai"
++                artifactId = "llama-android-probe"
++                version = "0.1.0"
++                from(components["release"])
++            }
++        }
++        repositories {
++            maven {
++                name = "probe"
++                url = uri(layout.buildDirectory.dir("probe-maven"))
++            }
++        }
++    }
++}
++
+ dependencies {
+     implementation(libs.androidx.core.ktx)
+     implementation(libs.androidx.datastore.preferences)
+diff --git a/examples/llama.android/lib/src/main/cpp/ai_chat.cpp b/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
+index 03ab96c..e168f30 100644
+--- a/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
++++ b/examples/llama.android/lib/src/main/cpp/ai_chat.cpp
+@@ -1,4 +1,5 @@
+ #include <android/log.h>
++#include <atomic>
+ #include <jni.h>
+ #include <iomanip>
+ #include <cmath>
+@@ -38,6 +39,17 @@ static llama_context                    * g_context;
+ static llama_batch                        g_batch;
+ static common_chat_templates_ptr          g_chat_templates;
+ static common_sampler                   * g_sampler;
++static std::atomic_bool                   g_cancelled{false};
++
++static bool abort_requested(void *) {
++    return g_cancelled.load(std::memory_order_relaxed);
++}
++
++extern "C"
++JNIEXPORT void JNICALL
++Java_com_arm_aichat_internal_InferenceEngineImpl_requestCancelNative(JNIEnv *, jobject) {
++    g_cancelled.store(true, std::memory_order_relaxed);
++}
+
+ extern "C"
+ JNIEXPORT void JNICALL
+@@ -97,6 +109,8 @@ static llama_context *init_context(llama_model *model, const int n_ctx = DEFAULT
+     ctx_params.n_ubatch = BATCH_SIZE;
+     ctx_params.n_threads = n_threads;
+     ctx_params.n_threads_batch = n_threads;
++    ctx_params.abort_callback = abort_requested;
++    ctx_params.abort_callback_data = nullptr;
+     auto *context = llama_init_from_model(g_model, ctx_params);
+     if (context == nullptr) {
+         LOGe("%s: llama_new_context_with_model() returned null)", __func__);
+@@ -113,6 +127,7 @@ static common_sampler *new_sampler(float temp) {
+ extern "C"
+ JNIEXPORT jint JNICALL
+ Java_com_arm_aichat_internal_InferenceEngineImpl_prepare(JNIEnv * /*env*/, jobject /*unused*/) {
++    g_cancelled.store(false, std::memory_order_relaxed);
+     auto *context = init_context(g_model);
+     if (!context) { return 1; }
+     g_context = context;
+@@ -322,6 +337,9 @@ static int decode_tokens_in_batches(
+     // Process tokens in batches using the global batch
+     LOGd("%s: Decode %d tokens starting at position %d", __func__, (int) tokens.size(), start_pos);
+     for (int i = 0; i < (int) tokens.size(); i += BATCH_SIZE) {
++        if (g_cancelled.load(std::memory_order_relaxed)) {
++            return 3;
++        }
+         const int cur_batch_size = std::min((int) tokens.size() - i, BATCH_SIZE);
+         common_batch_clear(batch);
+         LOGv("%s: Preparing a batch size of %d starting at: %d", __func__, cur_batch_size, i);
+@@ -343,6 +361,9 @@ static int decode_tokens_in_batches(
+         // Decode this batch
+         const int decode_result = llama_decode(context, batch);
+         if (decode_result) {
++            if (g_cancelled.load(std::memory_order_relaxed)) {
++                return 3;
++            }
+             LOGe("%s: llama_decode failed w/ %d", __func__, decode_result);
+             return 1;
+         }
+@@ -401,12 +422,13 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processSystemPrompt(
+
+ extern "C"
+ JNIEXPORT jint JNICALL
+-Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
++Java_com_arm_aichat_internal_InferenceEngineImpl_processPrompt(
+         JNIEnv *env,
+         jobject /*unused*/,
+         jstring juser_prompt,
+-        jint n_predict
++        jint n_predict,
++        jboolean apply_chat_template
+ ) {
+     // Reset short-term states
+     reset_short_term_states();
+
+@@ -417,13 +439,17 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
+
+     // Format user prompt if applicable
+     const bool has_chat_template = common_chat_templates_was_explicit(g_chat_templates.get());
+-    if (has_chat_template) {
++    if (has_chat_template && apply_chat_template) {
+         formatted_user_prompt = chat_add_and_format(ROLE_USER, user_prompt);
+     }
+     env->ReleaseStringUTFChars(juser_prompt, user_prompt);
+
+     // Decode formatted user prompts
+-    auto user_tokens = common_tokenize(g_context, formatted_user_prompt, has_chat_template, has_chat_template);
++    auto user_tokens = common_tokenize(
++            g_context,
++            formatted_user_prompt,
++            has_chat_template && apply_chat_template,
++            has_chat_template && apply_chat_template);
+     for (auto id: user_tokens) {
+         LOGv("token: `%s`\t -> `%d`", common_token_to_piece(g_context, id).c_str(), id);
+     }
+@@ -439,6 +465,9 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_processUserPrompt(
+
+     // Decode user tokens in batches
+     if (decode_tokens_in_batches(g_context, g_batch, user_tokens, current_position, true)) {
++        if (g_cancelled.load(std::memory_order_relaxed)) {
++            return 3;
++        }
+         LOGe("%s: llama_decode() failed!", __func__);
+         return 2;
+     }
+@@ -489,6 +518,9 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_generateNextToken(
+         JNIEnv *env,
+         jobject /*unused*/
+ ) {
++    if (g_cancelled.load(std::memory_order_relaxed)) {
++        return nullptr;
++    }
+     // Infinite text generation via context shifting
+     if (current_position >= DEFAULT_CONTEXT_SIZE - OVERFLOW_HEADROOM) {
+         LOGw("%s: Context full! Shifting...", __func__);
+@@ -546,6 +578,7 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_generateNextToken(
+ extern "C"
+ JNIEXPORT void JNICALL
+ Java_com_arm_aichat_internal_InferenceEngineImpl_unload(JNIEnv * /*unused*/, jobject /*unused*/) {
++    g_cancelled.store(true, std::memory_order_relaxed);
+     // Reset long-term & short-term states
+     reset_long_term_states();
+     reset_short_term_states();
+@@ -556,6 +589,9 @@ Java_com_arm_aichat_internal_InferenceEngineImpl_unload(JNIEnv * /*unused*/, job
+     llama_batch_free(g_batch);
+     llama_free(g_context);
+     llama_model_free(g_model);
++    g_sampler = nullptr;
++    g_context = nullptr;
++    g_model = nullptr;
+ }
+
+ extern "C"
+diff --git a/examples/llama.android/lib/src/main/cpp/logging.h b/examples/llama.android/lib/src/main/cpp/logging.h
+index b483322..201a274 100644
+--- a/examples/llama.android/lib/src/main/cpp/logging.h
++++ b/examples/llama.android/lib/src/main/cpp/logging.h
+@@ -23,7 +23,11 @@ static inline int ai_should_log(int prio) {
+-    return __android_log_is_loggable(prio, LOG_TAG, LOG_MIN_LEVEL);
++#if __ANDROID_API__ >= 30
++    return __android_log_is_loggable(prio, LOG_TAG, LOG_MIN_LEVEL);
++#else
++    return prio >= LOG_MIN_LEVEL;
++#endif
+ }
+
+ #if LOG_MIN_LEVEL <= ANDROID_LOG_VERBOSE
+ #define LOGv(...) do { if (ai_should_log(ANDROID_LOG_VERBOSE)) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__); } while (0)
+ #else
+ #define LOGv(...) ((void)0)
+diff --git a/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt b/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt
+index 26c1668..09490ae 100644
+--- a/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt
++++ b/examples/llama.android/lib/src/main/java/com/arm/aichat/InferenceEngine.kt
+@@ -30,6 +30,20 @@ interface InferenceEngine {
+      */
+     fun sendUserPrompt(message: String, predictLength: Int = DEFAULT_PREDICT_LENGTH): Flow<String>
+
++    /**
++     * Sends either a raw prompt or a chat-templated user prompt.
++     */
++    fun sendPrompt(
++        message: String,
++        predictLength: Int = DEFAULT_PREDICT_LENGTH,
++        applyChatTemplate: Boolean,
++    ): Flow<String>
++
++    /**
++     * Requests cooperative cancellation from a thread other than the inference dispatcher.
++     */
++    fun requestCancel()
++
+     /**
+      * Runs a benchmark with the specified parameters.
+      */
+diff --git a/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt b/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt
+index a293796f9..53a590064 100644
+--- a/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt
++++ b/examples/llama.android/lib/src/main/java/com/arm/aichat/internal/InferenceEngineImpl.kt
+@@ -98,7 +98,14 @@ internal class InferenceEngineImpl private constructor(
+     private external fun processSystemPrompt(systemPrompt: String): Int
+
+     @FastNative
+-    private external fun processUserPrompt(userPrompt: String, predictLength: Int): Int
++    private external fun processPrompt(
++        prompt: String,
++        predictLength: Int,
++        applyChatTemplate: Boolean,
++    ): Int
++
++    @FastNative
++    private external fun requestCancelNative()
+
+     @FastNative
+     private external fun generateNextToken(): String?
+@@ -200,6 +207,10 @@ internal class InferenceEngineImpl private constructor(
+             _readyForSystemPrompt = false
+             _state.value = InferenceEngine.State.ProcessingSystemPrompt
+             processSystemPrompt(prompt).let { result ->
++                if (result == 3 || _cancelGeneration) {
++                    _state.value = InferenceEngine.State.ModelReady
++                    throw CancellationException("System prompt processing cancelled")
++                }
+                 if (result != 0) {
+                     RuntimeException("Failed to process system prompt: $result").also {
+                         _state.value = InferenceEngine.State.Error(it)
+@@ -217,6 +228,12 @@ internal class InferenceEngineImpl private constructor(
+     override fun sendUserPrompt(
+         message: String,
+         predictLength: Int,
++    ): Flow<String> = sendPrompt(message, predictLength, true)
++
++    override fun sendPrompt(
++        message: String,
++        predictLength: Int,
++        applyChatTemplate: Boolean,
+     ): Flow<String> = flow {
+         require(message.isNotEmpty()) { "User prompt discarded due to being empty!" }
+         check(_state.value is InferenceEngine.State.ModelReady) {
+@@ -228,7 +245,10 @@ internal class InferenceEngineImpl private constructor(
+             _readyForSystemPrompt = false
+             _state.value = InferenceEngine.State.ProcessingUserPrompt
+
+-            processUserPrompt(message, predictLength).let { result ->
++            processPrompt(message, predictLength, applyChatTemplate).let { result ->
++                if (result == 3 || _cancelGeneration) {
++                    throw CancellationException("Prompt processing cancelled")
++                }
+                 if (result != 0) {
+                     Log.e(TAG, "Failed to process user prompt: $result")
+                     return@flow
+@@ -259,6 +279,11 @@ internal class InferenceEngineImpl private constructor(
+         }
+     }.flowOn(llamaDispatcher)
+
++    override fun requestCancel() {
++        _cancelGeneration = true
++        requestCancelNative()
++    }
++
+     /**
+      * Benchmark the model
+      */
+@@ -279,7 +304,7 @@ internal class InferenceEngineImpl private constructor(
+      * Unloads the model and frees resources, or reset error states
+      */
+     override fun cleanUp() {
+-        _cancelGeneration = true
++        requestCancel()
+         runBlocking(llamaDispatcher) {
+             when (val state = _state.value) {
+                 is InferenceEngine.State.ModelReady -> {
+@@ -310,7 +335,7 @@ internal class InferenceEngineImpl private constructor(
+      * Cancel all ongoing coroutines and free GGML backends
+      */
+     override fun destroy() {
+-        _cancelGeneration = true
++        requestCancel()
+         runBlocking(llamaDispatcher) {
+             _readyForSystemPrompt = false
+             when(_state.value) {

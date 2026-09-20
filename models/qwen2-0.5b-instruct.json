@@ -1,0 +1,90 @@
+{
+  "id": "qwen2-0.5b-instruct",
+  "family": "Qwen2",
+  "base_model": "Qwen/Qwen2-0.5B-Instruct",
+  "license": "Apache-2.0",
+  "provenance": {
+    "publisher": "Qwen",
+    "notes": "Both platform artifacts are official Qwen conversions of Qwen2-0.5B-Instruct. Neither conversion repository records the exact source-checkpoint commit used to create it; that provenance gap is explicit and must not be represented as a bit-identical conversion lineage."
+  },
+  "platforms": {
+    "ios": {
+      "backend": "mlx-swift-lm",
+      "repository": "Qwen/Qwen2-0.5B-Instruct-MLX",
+      "revision": "759509dd0249685cbdeaa4e587679fabe366b918",
+      "quantization": "4-bit, group size 64",
+      "total_size": 289599130,
+      "files": [
+        {
+          "path": "LICENSE",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-GGUF/resolve/198f08841147e5196a6a69bd0053690fb1fd3857/LICENSE",
+          "size": 11344,
+          "sha256": "c156170b718ec29139d3653d40ed1986fd92fb7e0959b5c71f3c48f62e6636f4"
+        },
+        {
+          "path": "config.json",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/config.json",
+          "size": 783,
+          "sha256": "3c17e2500e3964c68277fdc7a68cda16bc3f0a5d6582fdc100aefb145f14a29f"
+        },
+        {
+          "path": "merges.txt",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/merges.txt",
+          "size": 1671853,
+          "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5"
+        },
+        {
+          "path": "model.safetensors",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/model.safetensors",
+          "size": 278064766,
+          "sha256": "961b4727c18aec86456a213028e08f54cbe0081ad7b9e3e5eccfd967e47387dd"
+        },
+        {
+          "path": "model.safetensors.index.json",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/model.safetensors.index.json",
+          "size": 44209,
+          "sha256": "54001cb4c11197119c206dde28e7be08e5872aab6c6d271aed339ec77e84f870"
+        },
+        {
+          "path": "tokenizer.json",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/tokenizer.json",
+          "size": 7028043,
+          "sha256": "a12e3ba5d5e0ad173cf7b408ab8534c6be8cbc6a146714e9c7dc8cf2346603b1"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/tokenizer_config.json",
+          "size": 1299,
+          "sha256": "c8f4ae7809a0d555cce69fa8632f03e1294c779f0103df48b2b1f85acb82d1d3"
+        },
+        {
+          "path": "vocab.json",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-MLX/resolve/759509dd0249685cbdeaa4e587679fabe366b918/vocab.json",
+          "size": 2776833,
+          "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+        }
+      ]
+    },
+    "android": {
+      "backend": "llama.cpp",
+      "repository": "Qwen/Qwen2-0.5B-Instruct-GGUF",
+      "revision": "198f08841147e5196a6a69bd0053690fb1fd3857",
+      "quantization": "Q4_K_M",
+      "total_size": 397816592,
+      "files": [
+        {
+          "path": "LICENSE",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-GGUF/resolve/198f08841147e5196a6a69bd0053690fb1fd3857/LICENSE",
+          "size": 11344,
+          "sha256": "c156170b718ec29139d3653d40ed1986fd92fb7e0959b5c71f3c48f62e6636f4"
+        },
+        {
+          "path": "qwen2-0_5b-instruct-q4_k_m.gguf",
+          "url": "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-GGUF/resolve/198f08841147e5196a6a69bd0053690fb1fd3857/qwen2-0_5b-instruct-q4_k_m.gguf",
+          "size": 397805248,
+          "sha256": "f0a42bb979ca62b5e61f3bf924ab4b6a40aa091825ee7dcb4039949980ab81a8"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "nativephp/local-ai-feasibility",
+  "description": "Milestone 1 feasibility probe; not the published NativePHP Local AI API",
+  "type": "nativephp-plugin",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "NativePHP\\LocalAI\\Probe\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "NativePHP\\LocalAI\\Probe\\ProbeServiceProvider"
+      ]
+    },
+    "nativephp": {
+      "manifest": "nativephp.json"
+    }
+  },
+  "require": {
+    "php": "^8.3",
+    "nativephp/mobile": "4.5.1"
+  }
+}

@@ -83,6 +83,16 @@ For the Linux static gate (where no device/ADB target is available), plugin comp
 5. Select the iPhone 16 Pro running iOS 27, choose the development team/signing identity, build, and run. Record the resolved package graph and preserve the full Xcode build log. Confirm the resolved commits exactly match the pin table before accepting the build.
 6. Turn on airplane mode and disable Wi-Fi before inference. Capture Console logs and, if possible, an Instruments network trace showing no inference-time connections.
 
+## Mac compile diagnostics
+
+The probe was imported at commit `56743662ec13f99717fd07469cbf4b57d3049ff6` and inspected with Xcode 27.0 build `27A266a`, Apple Swift 6.4 (`swiftlang-6.4.0.34.1`), and the iOS 27.0 SDK. Per-command `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` was used; the system-wide Xcode selection was not changed. This toolchain accepts MLX Swift 0.31.6's Swift 6.3 experimental manifest. Both generated `Package.resolved` files select SwiftSyntax `603.0.2` at `79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1`, alongside the exact MLX Swift LM, MLX Swift, and Swift Transformers revisions in the pin table.
+
+The unsigned generic-device diagnostic compiled and linked `MLXHuggingFaceMacros` as a macOS host executable using the SwiftSyntax 603.0.2 prebuilt. After the separately installed Metal Toolchain became available, the same graph compiled the MLX Metal sources and linked `default.metallib`, then reached the probe's Swift sources. It exposed four calls written as `BridgeResponse.success(...)`; NativePHP Mobile 4.5.1 declares `success(data:)` and its plugin stub uses that label. The tracked probe now uses `BridgeResponse.success(data:)` at those four call sites. One explicitly authorised post-fix unsigned generic-device build, run with package-plugin and macro validation skipped, compiled and linked the complete arm64 app, validated the bundle, ended `BUILD SUCCEEDED`, and returned child exit status 0.
+
+The simulator diagnostic failed earlier because Xcode compiled the `MLXHuggingFaceMacros` implementation with the iPhone Simulator SDK and an `arm64-apple-ios17.0-simulator` target while searching a host-only SwiftSyntax MacroSupport prebuilt. No SwiftSyntax targets were built in that graph, and the imports of `SwiftCompilerPlugin`, `SwiftSyntax`, `SwiftSyntaxBuilder`, and `SwiftSyntaxMacros` could not resolve. Swift macro implementations are required to build and run for the host, and the generic-device graph successfully compiled the same macro with the macOS SDK and `arm64-apple-macos14.0`. The evidence therefore supports a simulator host/destination specialization problem; it does not establish that SwiftSyntax 604 is required or that SwiftSyntax 603.0.2 is generally incompatible with Xcode 27.
+
+These were direct unsigned `xcodebuild` diagnostics that bypassed NativePHP's unconditional CocoaPods invocation for its empty generated Podfile. They do not demonstrate reproducibility through the normal NativePHP build wrapper. No physical iPhone was connected, installed to, or tested.
+
 ## Device acceptance matrix
 
 Run only synthetic prompts. Capture terminal status, output, elapsed time, peak memory, relevant logs, and a screen recording showing the UI remains responsive.
@@ -102,4 +112,4 @@ Run only synthetic prompts. Capture terminal status, output, elapsed time, peak 
 
 ## Current verdict
 
-Android native integration, bridge generation, API-29 compilation, AAR packaging, Kotlin compatibility, and debug APK packaging are demonstrated in the orb. iOS source/API compatibility is pinned and audited but not compiled because the orb has no Swift/Xcode toolchain. Neither platform has run inference on a physical device in this work. Milestone 1 therefore remains **pending**, not passed.
+Android native integration, bridge generation, API-29 compilation, AAR packaging, Kotlin compatibility, and debug APK packaging are demonstrated in the orb. On iOS, the exact pinned dependency graph and corrected probe compile and link successfully for a generic arm64 iOS device in a direct unsigned build with package-plugin and macro validation skipped. The simulator host-target issue, normal NativePHP wrapper path, signed device installation, and both physical-device acceptance matrices remain unverified. Neither platform has run inference on a physical device in this work. Milestone 1 therefore remains **pending**, not passed.

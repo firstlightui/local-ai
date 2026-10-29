@@ -2,3 +2,4 @@
 /.build/
 /probe/host/
 /probe/host-overlay/local-llm-maven/
+__pycache__/

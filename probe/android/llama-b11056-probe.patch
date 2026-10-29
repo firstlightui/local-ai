@@ -40,7 +40,7 @@ index ae95f41..ec78caf 100644
 +    publishing {
 +        publications {
 +            create<MavenPublication>("release") {
-+                groupId = "com.nativephp.localai"
++                groupId = "dev.firstlightui.plugins.local_llm"
 +                artifactId = "llama-android-probe"
 +                version = "0.1.0"
 +                from(components["release"])

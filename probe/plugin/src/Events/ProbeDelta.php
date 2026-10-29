@@ -1,6 +1,6 @@
 <?php
 
-namespace NativePHP\LocalAI\Probe\Events;
+namespace FirstlightUI\LocalLLM\Probe\Events;
 
 final class ProbeDelta
 {

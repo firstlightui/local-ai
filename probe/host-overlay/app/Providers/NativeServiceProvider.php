@@ -5,7 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Native\Mobile\Providers\BrowserServiceProvider;
 use Native\Mobile\UI\NativeUIServiceProvider;
-use NativePHP\LocalAI\Probe\ProbeServiceProvider;
+use FirstlightUI\LocalLLM\Probe\ProbeServiceProvider;
 
 final class NativeServiceProvider extends ServiceProvider
 {

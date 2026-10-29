@@ -1,4 +1,4 @@
-package com.nativephp.localai.probe
+package dev.firstlightui.plugins.local_llm.probe
 
 import android.content.Context
 import com.arm.aichat.AiChat
@@ -63,7 +63,7 @@ data class ProbeRequest(
     }
 }
 
-object LocalAIProbeRuntime {
+object LocalLLMProbeRuntime {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val requests = Channel<ProbeRequest>(Channel.UNLIMITED)
     private val backgrounded = MutableStateFlow(false)
@@ -189,7 +189,7 @@ object LocalAIProbeRuntime {
     }
 
     private fun emitDelta(id: String, sequence: Int, delta: String) {
-        emit("NativePHP\\LocalAI\\Probe\\Events\\ProbeDelta", mapOf(
+        emit("FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeDelta", mapOf(
             "id" to id,
             "sequence" to sequence,
             "delta" to delta,
@@ -203,7 +203,7 @@ object LocalAIProbeRuntime {
         phase: String? = null,
         error: String? = null,
     ) {
-        emit("NativePHP\\LocalAI\\Probe\\Events\\ProbeTerminal", mapOf(
+        emit("FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeTerminal", mapOf(
             "id" to id,
             "status" to status,
             "text" to text,

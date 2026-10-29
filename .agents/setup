@@ -2,7 +2,7 @@
 set -euo pipefail
 
 started=$SECONDS
-printf 'Checking NativePHP Local AI feasibility prerequisites...\n'
+printf 'Checking Firstlight Local LLM feasibility prerequisites...\n'
 
 packages=()
 for package in ca-certificates curl git gnupg jq openjdk-17-jdk-headless rsync shellcheck unzip; do

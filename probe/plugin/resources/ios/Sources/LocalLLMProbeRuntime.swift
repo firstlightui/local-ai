@@ -20,15 +20,15 @@ struct ProbeRequest: Sendable {
 
     init(parameters: [String: Any]) throws {
         guard let id = parameters["id"] as? String, !id.isEmpty else {
-            throw LocalAIProbeError.invalidParameter("id")
+            throw LocalLLMProbeError.invalidParameter("id")
         }
         guard let modelPath = parameters["modelPath"] as? String, !modelPath.isEmpty else {
-            throw LocalAIProbeError.invalidParameter("modelPath")
+            throw LocalLLMProbeError.invalidParameter("modelPath")
         }
 
         let mode = parameters["mode"] as? String ?? "text"
         guard mode == "text" || mode == "chat" else {
-            throw LocalAIProbeError.invalidParameter("mode")
+            throw LocalLLMProbeError.invalidParameter("mode")
         }
 
         let prompt = parameters["prompt"] as? String
@@ -40,10 +40,10 @@ struct ProbeRequest: Sendable {
         }
 
         guard mode != "text" || prompt?.isEmpty == false else {
-            throw LocalAIProbeError.invalidParameter("prompt")
+            throw LocalLLMProbeError.invalidParameter("prompt")
         }
         guard mode != "chat" || messages.count == rawMessages.count && !messages.isEmpty else {
-            throw LocalAIProbeError.invalidParameter("messages")
+            throw LocalLLMProbeError.invalidParameter("messages")
         }
 
         self.id = id
@@ -55,8 +55,8 @@ struct ProbeRequest: Sendable {
     }
 }
 
-actor LocalAIProbeRuntime {
-    static let shared = LocalAIProbeRuntime()
+actor LocalLLMProbeRuntime {
+    static let shared = LocalLLMProbeRuntime()
 
     private var model: ModelContainer?
     private var modelPath: String?
@@ -186,7 +186,7 @@ actor LocalAIProbeRuntime {
 
         let chat = try request.messages.map { message -> Chat.Message in
             guard let role = Chat.Message.Role(rawValue: message.role) else {
-                throw LocalAIProbeError.invalidParameter("messages.role")
+                throw LocalLLMProbeError.invalidParameter("messages.role")
             }
             return Chat.Message(role: role, content: message.content)
         }
@@ -202,7 +202,7 @@ actor LocalAIProbeRuntime {
     }
 
     private nonisolated func emitDelta(id: String, sequence: Int, delta: String) {
-        LaravelBridge.shared.send?("NativePHP\\LocalAI\\Probe\\Events\\ProbeDelta", [
+        LaravelBridge.shared.send?("FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeDelta", [
             "id": id,
             "sequence": sequence,
             "delta": delta,
@@ -216,7 +216,7 @@ actor LocalAIProbeRuntime {
         phase: String? = nil,
         error: String? = nil
     ) {
-        LaravelBridge.shared.send?("NativePHP\\LocalAI\\Probe\\Events\\ProbeTerminal", [
+        LaravelBridge.shared.send?("FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeTerminal", [
             "id": id,
             "status": status,
             "text": text,

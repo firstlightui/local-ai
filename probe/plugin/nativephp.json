@@ -1,40 +1,40 @@
 {
-  "namespace": "LocalAIFeasibility",
+  "namespace": "LocalLLMFeasibility",
   "platforms": ["ios", "android"],
   "bridge_functions": [
     {
-      "name": "LocalAIProbe.Start",
-      "ios": "LocalAIProbeFunctions.Start",
-      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.Start",
+      "name": "LocalLLMProbe.Start",
+      "ios": "LocalLLMProbeFunctions.Start",
+      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.Start",
       "android_params": ["context"]
     },
     {
-      "name": "LocalAIProbe.Cancel",
-      "ios": "LocalAIProbeFunctions.Cancel",
-      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.Cancel",
+      "name": "LocalLLMProbe.Cancel",
+      "ios": "LocalLLMProbeFunctions.Cancel",
+      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.Cancel",
       "android_params": ["context"]
     },
     {
-      "name": "LocalAIProbe.Unload",
-      "ios": "LocalAIProbeFunctions.Unload",
-      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.Unload",
+      "name": "LocalLLMProbe.Unload",
+      "ios": "LocalLLMProbeFunctions.Unload",
+      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.Unload",
       "android_params": ["context"]
     },
     {
-      "name": "LocalAIProbe.SetBackgrounded",
-      "ios": "LocalAIProbeFunctions.SetBackgrounded",
-      "android": "com.nativephp.localai.probe.LocalAIProbeFunctions.SetBackgrounded",
+      "name": "LocalLLMProbe.SetBackgrounded",
+      "ios": "LocalLLMProbeFunctions.SetBackgrounded",
+      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.SetBackgrounded",
       "android_params": ["context"]
     }
   ],
   "events": [
-    "NativePHP\\LocalAI\\Probe\\Events\\ProbeDelta",
-    "NativePHP\\LocalAI\\Probe\\Events\\ProbeTerminal"
+    "FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeDelta",
+    "FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeTerminal"
   ],
   "ios": {
     "min_version": "18.0",
-    "init_function": "initializeLocalAIProbe",
-    "sources": ["LocalAIProbeFunctions.swift", "LocalAIProbeLifecycle.swift", "LocalAIProbeRuntime.swift"],
+    "init_function": "initializeLocalLLMProbe",
+    "sources": ["LocalLLMProbeFunctions.swift", "LocalLLMProbeLifecycle.swift", "LocalLLMProbeRuntime.swift"],
     "dependencies": {
       "swift_packages": [
         {
@@ -56,16 +56,16 @@
     }
   },
   "android": {
-    "init_function": "com.nativephp.localai.probe.initializeLocalAIProbe",
+    "init_function": "dev.firstlightui.plugins.local_llm.probe.initializeLocalLLMProbe",
     "min_version": 29,
     "dependencies": {
       "implementation": [
-        "com.nativephp.localai:llama-android-probe:0.1.0"
+        "dev.firstlightui.plugins.local_llm:llama-android-probe:0.1.0"
       ]
     },
     "repositories": [
       {
-        "url": "$rootDir/localai-maven"
+        "url": "$rootDir/local-llm-maven"
       }
     ]
   }

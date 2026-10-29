@@ -1,7 +1,7 @@
 import UIKit
 
-private final class LocalAIProbeLifecycleObserver: NSObject {
-    static let shared = LocalAIProbeLifecycleObserver()
+private final class LocalLLMProbeLifecycleObserver: NSObject {
+    static let shared = LocalLLMProbeLifecycleObserver()
 
     func install() {
         NotificationCenter.default.addObserver(
@@ -19,14 +19,14 @@ private final class LocalAIProbeLifecycleObserver: NSObject {
     }
 
     @objc private func didEnterBackground() {
-        Task { await LocalAIProbeRuntime.shared.setBackgrounded(true) }
+        Task { await LocalLLMProbeRuntime.shared.setBackgrounded(true) }
     }
 
     @objc private func didBecomeActive() {
-        Task { await LocalAIProbeRuntime.shared.setBackgrounded(false) }
+        Task { await LocalLLMProbeRuntime.shared.setBackgrounded(false) }
     }
 }
 
-func initializeLocalAIProbe() {
-    LocalAIProbeLifecycleObserver.shared.install()
+func initializeLocalLLMProbe() {
+    LocalLLMProbeLifecycleObserver.shared.install()
 }

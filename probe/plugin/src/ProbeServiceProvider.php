@@ -1,6 +1,6 @@
 <?php
 
-namespace NativePHP\LocalAI\Probe;
+namespace FirstlightUI\LocalLLM\Probe;
 
 use Illuminate\Support\ServiceProvider;
 

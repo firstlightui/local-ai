@@ -1,17 +1,17 @@
 {
-  "name": "nativephp/local-ai-feasibility",
-  "description": "Milestone 1 feasibility probe; not the published NativePHP Local AI API",
+  "name": "firstlightui/local-llm-feasibility",
+  "description": "Milestone 1 feasibility probe; not the published Firstlight Local LLM API",
   "type": "nativephp-plugin",
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "NativePHP\\LocalAI\\Probe\\": "src/"
+      "FirstlightUI\\LocalLLM\\Probe\\": "src/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "NativePHP\\LocalAI\\Probe\\ProbeServiceProvider"
+        "FirstlightUI\\LocalLLM\\Probe\\ProbeServiceProvider"
       ]
     },
     "nativephp": {

@@ -1,4 +1,4 @@
 .amp/portals/*
 /.build/
 /probe/host/
-/probe/host-overlay/localai-maven/
+/probe/host-overlay/local-llm-maven/

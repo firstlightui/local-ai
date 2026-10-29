@@ -1,5 +1,4 @@
 .amp/portals/*
-/.build/
-/probe/host/
-/probe/host-overlay/local-ai-maven/
-__pycache__/
+/vendor/
+composer.lock
+.phpunit.result.cache

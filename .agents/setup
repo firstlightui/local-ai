@@ -2,7 +2,7 @@
 set -euo pipefail
 
 started=$SECONDS
-printf 'Checking Firstlight Local AI feasibility prerequisites...\n'
+printf 'Checking Firstlight Local AI prerequisites...\n'
 
 packages=()
 for package in ca-certificates curl git gnupg jq openjdk-17-jdk-headless rsync shellcheck unzip; do
@@ -79,4 +79,4 @@ for tool in git curl jq shellcheck php composer java; do
     command -v "$tool" >/dev/null
 done
 
-printf 'Feasibility orb setup ready in %ss. iOS builds and physical-device checks still require a Mac.\n' "$((SECONDS - started))"
+printf 'Local AI orb setup ready in %ss. iOS builds and on-device checks still require a Mac and supported devices.\n' "$((SECONDS - started))"

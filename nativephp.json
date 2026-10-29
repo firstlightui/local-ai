@@ -1,0 +1,66 @@
+{
+    "namespace": "LocalAI",
+    "platforms": [
+        "android",
+        "ios"
+    ],
+    "bridge_functions": [
+        {
+            "name": "LocalAI.Availability",
+            "ios": "LocalAIFunctions.Availability",
+            "android": "dev.firstlightui.plugins.local_ai.LocalAIFunctions.Availability",
+            "description": "Report whether the operating system's on-device model can be used"
+        },
+        {
+            "name": "LocalAI.Download",
+            "ios": "LocalAIFunctions.Download",
+            "android": "dev.firstlightui.plugins.local_ai.LocalAIFunctions.Download",
+            "description": "Ask the operating system to download its on-device model (Android only; iOS manages this itself)"
+        },
+        {
+            "name": "LocalAI.Generate",
+            "ios": "LocalAIFunctions.Generate",
+            "android": "dev.firstlightui.plugins.local_ai.LocalAIFunctions.Generate",
+            "description": "Queue a streamed generation and return immediately"
+        },
+        {
+            "name": "LocalAI.Cancel",
+            "ios": "LocalAIFunctions.Cancel",
+            "android": "dev.firstlightui.plugins.local_ai.LocalAIFunctions.Cancel",
+            "description": "Request cancellation of a queued or running generation"
+        },
+        {
+            "name": "LocalAI.Status",
+            "ios": "LocalAIFunctions.Status",
+            "android": "dev.firstlightui.plugins.local_ai.LocalAIFunctions.Status",
+            "description": "Return the native snapshot of a generation"
+        }
+    ],
+    "events": [
+        "FirstlightUI\\LocalAI\\Events\\TextDeltaGenerated",
+        "FirstlightUI\\LocalAI\\Events\\GenerationCompleted",
+        "FirstlightUI\\LocalAI\\Events\\GenerationFailed",
+        "FirstlightUI\\LocalAI\\Events\\GenerationCancelled",
+        "FirstlightUI\\LocalAI\\Events\\ModelDownloadProgress"
+    ],
+    "android": {
+        "min_version": 29,
+        "init_function": "dev.firstlightui.plugins.local_ai.initializeLocalAI",
+        "dependencies": {
+            "implementation": [
+                "com.google.mlkit:genai-prompt:1.0.0-beta5"
+            ]
+        }
+    },
+    "ios": {
+        "min_version": "18.0",
+        "init_function": "initializeLocalAI",
+        "dependencies": {
+            "swift_packages": [],
+            "pods": []
+        }
+    },
+    "hooks": {
+        "pre_compile": "nativephp:local-ai:prepare-android"
+    }
+}

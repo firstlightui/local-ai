@@ -59,17 +59,17 @@ For the Linux static gate (where no device/ADB target is available), plugin comp
 
 1. Connect an arm64 Android phone with Developer options and USB debugging enabled. Record manufacturer/model, Android version, API level, RAM, and SoC. Confirm `adb devices` shows it as `device`.
 2. Install the verified model and prepare the host as above.
-3. Before building, leave `LOCAL_LLM_MODEL_PATH` unset (the default is the app-private file `qwen2-0.5b-instruct`) or set another relative app-files name in `probe/host/.env`.
+3. Before building, leave `LOCAL_AI_MODEL_PATH` unset (the default is the app-private file `qwen2-0.5b-instruct`) or set another relative app-files name in `probe/host/.env`.
 4. Run `export ANDROID_HOME="$HOME/Library/Android/sdk"`, then `PATH="$ANDROID_HOME/platform-tools:$PATH" php artisan native:run android --build=debug` on macOS, adjusting the SDK path if Android Studio uses another location.
 5. Stage the GGUF into the installed debug app, then restart it:
 
    ```bash
    MODEL=.build/models/qwen2-0.5b-instruct/android/qwen2-0_5b-instruct-q4_k_m.gguf
    adb push "$MODEL" /data/local/tmp/qwen2-0.5b-instruct
-   adb shell run-as dev.firstlightui.localllm.probe cp /data/local/tmp/qwen2-0.5b-instruct files/qwen2-0.5b-instruct
+   adb shell run-as dev.firstlightui.localai.probe cp /data/local/tmp/qwen2-0.5b-instruct files/qwen2-0.5b-instruct
    adb shell rm /data/local/tmp/qwen2-0.5b-instruct
-   adb shell am force-stop dev.firstlightui.localllm.probe
-   adb shell monkey -p dev.firstlightui.localllm.probe 1
+   adb shell am force-stop dev.firstlightui.localai.probe
+   adb shell monkey -p dev.firstlightui.localai.probe 1
    ```
 
 6. Turn on airplane mode and disable Wi-Fi before inference. Keep `adb logcat` running to capture crashes and unexpected network attempts.

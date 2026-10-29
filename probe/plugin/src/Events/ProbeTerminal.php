@@ -1,6 +1,6 @@
 <?php
 
-namespace FirstlightUI\LocalLLM\Probe\Events;
+namespace FirstlightUI\LocalAI\Probe\Events;
 
 final class ProbeTerminal
 {

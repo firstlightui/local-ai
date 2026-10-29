@@ -5,7 +5,7 @@ readonly LLAMA_REVISION=e613ef2c81bae98d59850d061ac29e6e3e88cb00
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly ROOT
 readonly WORK="${ROOT}/.build/llama.cpp"
-readonly OUTPUT="${ROOT}/probe/host-overlay/local-llm-maven"
+readonly OUTPUT="${ROOT}/probe/host-overlay/local-ai-maven"
 
 export ANDROID_HOME="${ANDROID_HOME:-/opt/android-sdk}"
 

@@ -1,6 +1,6 @@
 <scroll class="safe-area fill bg-theme-background">
     <column class="w-full gap-4 p-6">
-        <text class="text-xl font-bold text-theme-on-surface">Local LLM feasibility probe</text>
+        <text class="text-xl font-bold text-theme-on-surface">Local AI feasibility probe</text>
         <text class="text-sm text-theme-on-surface-variant">Status: {{ $status }}</text>
 
         <column class="w-full gap-3">

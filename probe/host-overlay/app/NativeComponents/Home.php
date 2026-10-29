@@ -5,9 +5,9 @@ namespace App\NativeComponents;
 use Illuminate\View\View;
 use Native\Mobile\Attributes\On;
 use Native\Mobile\Edge\NativeComponent;
-use FirstlightUI\LocalLLM\Probe\Events\ProbeDelta;
-use FirstlightUI\LocalLLM\Probe\Events\ProbeTerminal;
-use FirstlightUI\LocalLLM\Probe\Probe;
+use FirstlightUI\LocalAI\Probe\Events\ProbeDelta;
+use FirstlightUI\LocalAI\Probe\Events\ProbeTerminal;
+use FirstlightUI\LocalAI\Probe\Probe;
 
 final class Home extends NativeComponent
 {
@@ -98,7 +98,7 @@ final class Home extends NativeComponent
         $this->operationId = (string) str()->uuid();
         $probe->start($input + [
             'id' => $this->operationId,
-            'modelPath' => env('LOCAL_LLM_MODEL_PATH', 'qwen2-0.5b-instruct'),
+            'modelPath' => env('LOCAL_AI_MODEL_PATH', 'qwen2-0.5b-instruct'),
             'maxTokens' => 128,
         ]);
     }

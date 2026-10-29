@@ -1,9 +1,9 @@
-# Firstlight Local LLM: approved design and staged handoff
+# Firstlight Local AI: approved design and staged handoff
 
 Status: planning baseline, pending review of this consolidated document.
 Date: 2026-09-19.
 Target: NativePHP Mobile v4 only.
-Repository: https://github.com/firstlightui/local-llm
+Repository: https://github.com/firstlightui/local-ai
 
 This document records the decisions approved in the planning conversation. It
 does not authorise implementation, publication, deployment or a package release.
@@ -21,9 +21,9 @@ Provide private, on-device inference through one Laravel-style PHP API:
 - Backend selection belongs inside the plugin, not application platform checks.
 - Applications address logical models, whose native artefacts may differ.
 
-The Composer name is `firstlightui/local-llm`, following the other Firstlight UI
-packages: PHP namespace `FirstlightUI\LocalLLM`, facade `LocalLLM` and Android
-package `dev.firstlightui.plugins.local_llm`.
+The Composer name is `firstlightui/local-ai`, following the other Firstlight UI
+packages: PHP namespace `FirstlightUI\LocalAI`, facade `LocalAI` and Android
+package `dev.firstlightui.plugins.local_ai`.
 
 ### Release scope
 
@@ -47,7 +47,7 @@ Long-running operations return handles immediately after native acceptance.
 Discovery and status methods return synchronous snapshots.
 
 ```php
-$model = LocalLLM::model('qwen3.5:4b'); // Illustrative ID, not a verified default.
+$model = LocalAI::model('qwen3.5:4b'); // Illustrative ID, not a verified default.
 $download = $model->download();
 
 // In a later handler, after installation has completed:
@@ -71,7 +71,7 @@ $result = $generation->result();
 | `path()` | Diagnostic path, not required for ordinary inference |
 | `download()`, `load()`, `unload()`, `delete()` | Asynchronous operation handles |
 | `generate()`, `chat()`, `stream()` | Asynchronous generation handles |
-| `cancel()` / `LocalLLM::cancel($id)` | Cancellation request, not confirmation of terminal cancellation |
+| `cancel()` / `LocalAI::cancel($id)` | Cancellation request, not confirmation of terminal cancellation |
 | `result()` | Completed typed result, or defined not-ready/failed/cancelled/unavailable error |
 
 `generate()` and `stream()` use the same native generation pipeline. Streaming

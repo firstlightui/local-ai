@@ -1,40 +1,40 @@
 {
-  "namespace": "LocalLLMFeasibility",
+  "namespace": "LocalAIFeasibility",
   "platforms": ["ios", "android"],
   "bridge_functions": [
     {
-      "name": "LocalLLMProbe.Start",
-      "ios": "LocalLLMProbeFunctions.Start",
-      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.Start",
+      "name": "LocalAIProbe.Start",
+      "ios": "LocalAIProbeFunctions.Start",
+      "android": "dev.firstlightui.plugins.local_ai.probe.LocalAIProbeFunctions.Start",
       "android_params": ["context"]
     },
     {
-      "name": "LocalLLMProbe.Cancel",
-      "ios": "LocalLLMProbeFunctions.Cancel",
-      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.Cancel",
+      "name": "LocalAIProbe.Cancel",
+      "ios": "LocalAIProbeFunctions.Cancel",
+      "android": "dev.firstlightui.plugins.local_ai.probe.LocalAIProbeFunctions.Cancel",
       "android_params": ["context"]
     },
     {
-      "name": "LocalLLMProbe.Unload",
-      "ios": "LocalLLMProbeFunctions.Unload",
-      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.Unload",
+      "name": "LocalAIProbe.Unload",
+      "ios": "LocalAIProbeFunctions.Unload",
+      "android": "dev.firstlightui.plugins.local_ai.probe.LocalAIProbeFunctions.Unload",
       "android_params": ["context"]
     },
     {
-      "name": "LocalLLMProbe.SetBackgrounded",
-      "ios": "LocalLLMProbeFunctions.SetBackgrounded",
-      "android": "dev.firstlightui.plugins.local_llm.probe.LocalLLMProbeFunctions.SetBackgrounded",
+      "name": "LocalAIProbe.SetBackgrounded",
+      "ios": "LocalAIProbeFunctions.SetBackgrounded",
+      "android": "dev.firstlightui.plugins.local_ai.probe.LocalAIProbeFunctions.SetBackgrounded",
       "android_params": ["context"]
     }
   ],
   "events": [
-    "FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeDelta",
-    "FirstlightUI\\LocalLLM\\Probe\\Events\\ProbeTerminal"
+    "FirstlightUI\\LocalAI\\Probe\\Events\\ProbeDelta",
+    "FirstlightUI\\LocalAI\\Probe\\Events\\ProbeTerminal"
   ],
   "ios": {
     "min_version": "18.0",
-    "init_function": "initializeLocalLLMProbe",
-    "sources": ["LocalLLMProbeFunctions.swift", "LocalLLMProbeLifecycle.swift", "LocalLLMProbeRuntime.swift"],
+    "init_function": "initializeLocalAIProbe",
+    "sources": ["LocalAIProbeFunctions.swift", "LocalAIProbeLifecycle.swift", "LocalAIProbeRuntime.swift"],
     "dependencies": {
       "swift_packages": [
         {
@@ -56,16 +56,16 @@
     }
   },
   "android": {
-    "init_function": "dev.firstlightui.plugins.local_llm.probe.initializeLocalLLMProbe",
+    "init_function": "dev.firstlightui.plugins.local_ai.probe.initializeLocalAIProbe",
     "min_version": 29,
     "dependencies": {
       "implementation": [
-        "dev.firstlightui.plugins.local_llm:llama-android-probe:0.1.0"
+        "dev.firstlightui.plugins.local_ai:llama-android-probe:0.1.0"
       ]
     },
     "repositories": [
       {
-        "url": "$rootDir/local-llm-maven"
+        "url": "$rootDir/local-ai-maven"
       }
     ]
   }

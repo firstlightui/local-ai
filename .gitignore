@@ -1,5 +1,5 @@
 .amp/portals/*
 /.build/
 /probe/host/
-/probe/host-overlay/local-llm-maven/
+/probe/host-overlay/local-ai-maven/
 __pycache__/

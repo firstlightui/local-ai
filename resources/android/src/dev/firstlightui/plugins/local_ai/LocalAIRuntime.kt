@@ -1,13 +1,16 @@
 package dev.firstlightui.plugins.local_ai
 
-import android.app.Activity
-import android.app.Application
 import android.content.Context
-import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.common.GenAiException
 import com.google.mlkit.genai.prompt.Content
+import com.google.mlkit.genai.prompt.Feature
 import com.google.mlkit.genai.prompt.GenerateContentRequest
 import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
@@ -22,50 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.json.JSONObject
-
-class LocalAIFailure(val code: String, override val message: String) : Exception(message)
-
-data class LocalAIMessage(val role: String, val content: String)
-
-data class LocalAIRequest(
-    val id: String,
-    val instructions: String,
-    val messages: List<LocalAIMessage>,
-    val temperature: Float?,
-    val maxTokens: Int?,
-) {
-    companion object {
-        fun from(parameters: Map<String, Any>): LocalAIRequest {
-            val id = (parameters["id"] as? String)?.takeIf { it.isNotEmpty() }
-                ?: throw LocalAIFailure("invalid_request", "id is required")
-            val raw = (parameters["messages"] as? List<*>)?.takeIf { it.isNotEmpty() }
-                ?: throw LocalAIFailure("invalid_request", "messages are required")
-            val messages = raw.map { item ->
-                val map = item as? Map<*, *>
-                val role = map?.get("role") as? String
-                val content = map?.get("content") as? String
-                if ((role != "user" && role != "assistant") || content.isNullOrEmpty()) {
-                    throw LocalAIFailure("invalid_request", "messages must have a user or assistant role and content")
-                }
-                LocalAIMessage(role, content)
-            }
-            if (messages.last().role != "user") {
-                throw LocalAIFailure("invalid_request", "the last message must come from the user")
-            }
-            val maxTokens = (parameters["maxTokens"] as? Number)?.toInt()
-            if (maxTokens != null && maxTokens < 1) {
-                throw LocalAIFailure("invalid_request", "maxTokens must be positive")
-            }
-            return LocalAIRequest(
-                id = id,
-                instructions = parameters["instructions"] as? String ?: "",
-                messages = messages,
-                temperature = (parameters["temperature"] as? Number)?.toFloat(),
-                maxTokens = maxTokens,
-            )
-        }
-    }
-}
 
 private class LocalAIOperation(val request: LocalAIRequest) {
     var status = "queued"
@@ -229,7 +188,7 @@ object LocalAIRuntime {
     }
 
     private suspend fun buildRequest(request: LocalAIRequest): GenerateContentRequest {
-        if (request.instructions.isNotEmpty() && !model.isSystemPromptAvailable()) {
+        if (request.instructions.isNotEmpty() && Feature.SYSTEM_PROMPT !in model.getAvailableFeatures()) {
             throw LocalAIFailure("unsupported", "This device's model does not support system instructions.")
         }
         val contents = request.messages.map { message ->
@@ -313,28 +272,20 @@ object LocalAIRuntime {
     }
 }
 
-fun initializeLocalAI(context: Context) {
-    (context.applicationContext as Application).registerActivityLifecycleCallbacks(
-        object : Application.ActivityLifecycleCallbacks {
-            private var startedActivities = 0
+/**
+ * Pauses the queue while the whole app is in the background. NativePHP calls
+ * this from a background thread while MainActivity boots, possibly after the
+ * activity has started, so it observes the process lifecycle, which reports
+ * the current state to a late observer, rather than counting activity starts.
+ */
+fun initializeLocalAI(@Suppress("UNUSED_PARAMETER") context: Context) {
+    Handler(Looper.getMainLooper()).post {
+        ProcessLifecycleOwner.get().lifecycle.addObserver(LocalAILifecycleObserver)
+    }
+}
 
-            override fun onActivityStarted(activity: Activity) {
-                startedActivities += 1
-                if (startedActivities == 1) LocalAIRuntime.setBackgrounded(false)
-            }
+private object LocalAILifecycleObserver : DefaultLifecycleObserver {
+    override fun onStart(owner: LifecycleOwner) = LocalAIRuntime.setBackgrounded(false)
 
-            override fun onActivityStopped(activity: Activity) {
-                startedActivities = (startedActivities - 1).coerceAtLeast(0)
-                if (startedActivities == 0 && !activity.isChangingConfigurations) {
-                    LocalAIRuntime.setBackgrounded(true)
-                }
-            }
-
-            override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit
-            override fun onActivityResumed(activity: Activity) = Unit
-            override fun onActivityPaused(activity: Activity) = Unit
-            override fun onActivitySaveInstanceState(activity: Activity, state: Bundle) = Unit
-            override fun onActivityDestroyed(activity: Activity) = Unit
-        }
-    )
+    override fun onStop(owner: LifecycleOwner) = LocalAIRuntime.setBackgrounded(true)
 }

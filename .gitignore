@@ -2,3 +2,6 @@
 /vendor/
 composer.lock
 .phpunit.result.cache
+/resources/android/.gradle/
+/resources/android/.kotlin/
+/resources/android/build/

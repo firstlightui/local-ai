@@ -48,7 +48,8 @@
         "init_function": "dev.firstlightui.plugins.local_ai.initializeLocalAI",
         "dependencies": {
             "implementation": [
-                "com.google.mlkit:genai-prompt:1.0.0-beta5"
+                "com.google.mlkit:genai-prompt:1.0.0-beta5",
+                "androidx.lifecycle:lifecycle-process:2.6.1"
             ]
         }
     },

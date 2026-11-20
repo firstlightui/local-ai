@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(UIKit)
 import UIKit
+#endif
 #if canImport(FoundationModels)
 import FoundationModels
 #endif
@@ -72,6 +74,9 @@ private final class LocalAIOperation {
 /// Process-scoped owner of on-device generation: one FIFO queue, one active
 /// generation, and in-memory snapshots that outlive any screen.
 final class LocalAIRuntime {
+    /// Streams cumulative text for a request and returns when the response ends.
+    typealias Model = (LocalAIRequest, @escaping (String) -> Void) async throws -> Void
+
     static let shared = LocalAIRuntime()
 
     private static let maxPending = 8
@@ -83,12 +88,23 @@ final class LocalAIRuntime {
     private var terminalOrder: [String] = []
     private var activeId: String?
     private var backgrounded = false
+    private let availabilityOverride: (() -> [String: Any])?
+    private let modelOverride: Model?
+
+    /// The overrides stand in for Foundation Models in tests; the app uses the system model.
+    init(availability: (() -> [String: Any])? = nil, model: Model? = nil) {
+        availabilityOverride = availability
+        modelOverride = model
+    }
 
     // MARK: Availability
 
     func availability() -> [String: Any] {
+        if let availabilityOverride {
+            return availabilityOverride()
+        }
         #if canImport(FoundationModels)
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             switch SystemLanguageModel.default.availability {
             case .available:
                 return ["status": "available", "reason": "", "platform": "ios"]
@@ -188,10 +204,18 @@ final class LocalAIRuntime {
     private func run(_ operation: LocalAIOperation) async {
         let request = operation.request
         do {
-            try await generate(request) { [weak self] text in
+            let onText: (String) -> Void = { [weak self] text in
                 self?.receive(operation, cumulative: text)
             }
-            complete(operation, status: "completed")
+            if let modelOverride {
+                try await modelOverride(request, onText)
+            } else {
+                try await generate(request, onText: onText)
+            }
+            // Foundation Models ends the stream normally, without throwing, when
+            // its task is cancelled, so a requested cancel decides the outcome here.
+            let cancelled = lock.withLock { operation.cancelRequested } || Task.isCancelled
+            complete(operation, status: cancelled ? "cancelled" : "completed")
         } catch is CancellationError {
             complete(operation, status: "cancelled")
         } catch {
@@ -206,7 +230,7 @@ final class LocalAIRuntime {
 
     private func generate(_ request: LocalAIRequest, onText: @escaping (String) -> Void) async throws {
         #if canImport(FoundationModels)
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, macOS 26.0, *) {
             var entries: [Transcript.Entry] = []
             if !request.instructions.isEmpty {
                 entries.append(.instructions(Transcript.Instructions(
@@ -254,7 +278,7 @@ final class LocalAIRuntime {
     }
 
     #if canImport(FoundationModels)
-    @available(iOS 26.0, *)
+    @available(iOS 26.0, macOS 26.0, *)
     private static func segment(_ content: String) -> Transcript.Segment {
         .text(Transcript.TextSegment(id: UUID().uuidString, content: content))
     }
@@ -324,7 +348,7 @@ final class LocalAIRuntime {
             return failure
         }
         #if canImport(FoundationModels)
-        if #available(iOS 26.0, *), let error = error as? LanguageModelSession.GenerationError {
+        if #available(iOS 26.0, macOS 26.0, *), let error = error as? LanguageModelSession.GenerationError {
             let message = error.errorDescription ?? "Generation failed."
             switch error {
             case .exceededContextWindowSize:
@@ -353,6 +377,7 @@ final class LocalAIRuntime {
     }
 }
 
+#if canImport(UIKit)
 private final class LocalAILifecycleObserver: NSObject {
     static let shared = LocalAILifecycleObserver()
 
@@ -379,3 +404,4 @@ private final class LocalAILifecycleObserver: NSObject {
 func initializeLocalAI() {
     LocalAILifecycleObserver.shared.install()
 }
+#endif

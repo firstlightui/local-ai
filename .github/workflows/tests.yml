@@ -56,3 +56,15 @@ jobs:
       - name: Kotlin tests and Android typecheck
         working-directory: resources/android
         run: ./gradlew test compileHostCheckKotlin --console=plain
+
+  # The generation queue's unit tests (with a stand-in model) and a typecheck of the Swift
+  # sources against the iOS SDK at the iOS 18 floor.
+  ios:
+    name: iOS Swift
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: swift test --package-path resources/ios
+
+      - run: bin/typecheck-ios

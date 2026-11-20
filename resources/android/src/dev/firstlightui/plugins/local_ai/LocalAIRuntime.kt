@@ -174,7 +174,9 @@ object LocalAIRuntime {
                 val delta = chunk.candidates.firstOrNull()?.text.orEmpty()
                 if (delta.isNotEmpty()) receive(operation, delta)
             }
-            complete(operation, "completed")
+            // A stream that ends normally after a cancel request still counts as cancelled.
+            val cancelled = synchronized(lock) { operation.cancelRequested }
+            complete(operation, if (cancelled) "cancelled" else "completed")
         } catch (e: CancellationException) {
             complete(operation, "cancelled")
         } catch (e: Exception) {

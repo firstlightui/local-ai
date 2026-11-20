@@ -5,3 +5,5 @@ composer.lock
 /resources/android/.gradle/
 /resources/android/.kotlin/
 /resources/android/build/
+/resources/ios/.build/
+/resources/ios/.swiftpm/

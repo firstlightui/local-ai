@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- iOS: cancelling a running generation now ends it as `cancelled`, with `GenerationCancelled`. Foundation Models ends its stream without an error when cancelled, so the generation used to finish as `completed` and `result()` returned the partial text. Android applies the same rule.
 - Android: generations no longer fail with `invalid_request`. NativePHP passes nested parameters as `JSONArray` and `JSONObject`, which the request parser didn't read, so every `Generate` call was rejected.
 - Android: the queue no longer pauses while the app is in the foreground. Background state now comes from the process lifecycle, which reports the current state even when the plugin starts after the first activity.
 - A failure the plugin doesn't map to a code (`generation_failed`) now carries the system's reason instead of "Generation failed."
@@ -12,7 +13,7 @@
 ### Added
 
 - A JavaScript library in `resources/js/localAI.js` with one export per bridge function, event names and `LocalAIError`, for Inertia with Vue or React.
-- Off-device checks: a Gradle build that unit tests the Android request parser and typechecks the Kotlin against the ML Kit classes, and `bin/typecheck-ios`.
+- Off-device checks: a Gradle build that unit tests the Android request parser and typechecks the Kotlin against the ML Kit classes, a Swift package that unit tests the generation queue with a stand-in model, and `bin/typecheck-ios`.
 
 ### Changed
 

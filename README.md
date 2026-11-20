@@ -254,10 +254,11 @@ The iOS Simulator uses the Mac's own Apple Intelligence model, so generation in 
 composer install
 vendor/bin/pest                                                        # PHP, with a fake bridge
 (cd resources/android && ./gradlew test compileHostCheckKotlin)        # JDK 21 and the Android 36 platform
+swift test --package-path resources/ios                                # needs Xcode
 bin/typecheck-ios                                                      # needs Xcode
 ```
 
-The Gradle build unit tests the Android request parser on the JVM and typechecks every Kotlin source against `android.jar` and the ML Kit classes the app links. `bin/typecheck-ios` typechecks the Swift sources against the iOS SDK at the iOS 18 deployment floor. CI runs all of these except the iOS typecheck.
+The Gradle build unit tests the Android request parser on the JVM and typechecks every Kotlin source against `android.jar` and the ML Kit classes the app links. The Swift package unit tests the generation queue with a stand-in model, and `bin/typecheck-ios` typechecks the Swift sources against the iOS SDK at the iOS 18 deployment floor. CI runs all of these.
 
 ## Support
 

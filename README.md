@@ -243,6 +243,8 @@ Events are notifications, not a durable queue: they reach the screen that is liv
 
 The iOS Simulator uses the Mac's own Apple Intelligence model, so generation in an iOS 26 simulator needs a Mac with Apple Intelligence turned on. On a Mac without the model, `availability()` can still report `available` while generation fails with `generation_failed`. Android emulators have no AICore, so they report `unavailable`; test Android generation on a supported device.
 
+Release 1.0.0 was verified on an iPhone 16 Pro (iOS 27.0.1) and in the iOS 27 simulator, covering generation, chat, streaming, cancellation, queueing and backgrounding. On Android it was verified by builds and unit tests, and by correct `unavailable` handling on a Pixel 3, an Android 17 emulator, and Firebase Test Lab and Device Streaming phones (Pixel 9, Pixel 10 and Galaxy S25). Generation with Gemini Nano hasn't yet been run on a personal Android phone. If you try it, please report the result in an [issue](https://github.com/firstlightui/local-ai/issues).
+
 ## Build notes
 
 - **Android Kotlin.** ML Kit GenAI ships Kotlin 2.4 metadata, which NativePHP's Kotlin 2.0 template can't read. The plugin's `pre_compile` hook (`nativephp:local-ai:prepare-android`) runs before every Android build. It raises the host's `kotlin` version in `gradle/libs.versions.toml` to 2.3.21, and replaces the `kotlinOptions` block, which Kotlin 2.2 and later reject, with the equivalent `compilerOptions` DSL. The hook is idempotent and never lowers a newer version. The Compose compiler plugin follows the same version.

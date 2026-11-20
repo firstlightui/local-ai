@@ -3,6 +3,21 @@
     "description": "On-device text generation for NativePHP Mobile using the operating system's built-in models: Apple Foundation Models on iOS and Gemini Nano (ML Kit GenAI) on Android.",
     "type": "nativephp-plugin",
     "license": "MIT",
+    "keywords": [
+        "nativephp",
+        "nativephp-plugin",
+        "on-device",
+        "ai",
+        "llm",
+        "foundation-models",
+        "gemini-nano"
+    ],
+    "homepage": "https://github.com/firstlightui/local-ai",
+    "support": {
+        "email": "team@firstlightui.dev",
+        "issues": "https://github.com/firstlightui/local-ai/issues",
+        "source": "https://github.com/firstlightui/local-ai"
+    },
     "require": {
         "php": "^8.3",
         "nativephp/mobile": "^4.6.1"

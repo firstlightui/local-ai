@@ -1,4 +1,6 @@
 {
+    "name": "firstlightui/local-ai",
+    "description": "On-device text generation with the operating system's built-in model: Apple Foundation Models on iOS and Gemini Nano on Android.",
     "namespace": "LocalAI",
     "platforms": [
         "android",

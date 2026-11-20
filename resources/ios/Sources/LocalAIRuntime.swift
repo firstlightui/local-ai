@@ -195,7 +195,7 @@ final class LocalAIRuntime {
         } catch is CancellationError {
             complete(operation, status: "cancelled")
         } catch {
-            if operation.cancelRequested || Task.isCancelled {
+            if lock.withLock({ operation.cancelRequested }) || Task.isCancelled {
                 complete(operation, status: "cancelled")
             } else {
                 let failure = Self.failure(from: error)
@@ -342,7 +342,8 @@ final class LocalAIRuntime {
             }
         }
         #endif
-        return LocalAIFailure(code: "generation_failed", message: "Generation failed.")
+        // Keep the system's reason, such as a missing model asset, so apps can log it.
+        return LocalAIFailure(code: "generation_failed", message: error.localizedDescription)
     }
 
     private func emit(_ event: String, _ payload: [String: Any]) {

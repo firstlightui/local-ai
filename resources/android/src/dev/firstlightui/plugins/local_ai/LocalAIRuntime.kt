@@ -246,7 +246,7 @@ object LocalAIRuntime {
 
     private fun failure(e: Exception): LocalAIFailure {
         if (e is LocalAIFailure) return e
-        if (e !is GenAiException) return LocalAIFailure("generation_failed", "Generation failed.")
+        if (e !is GenAiException) return LocalAIFailure("generation_failed", e.message ?: "Generation failed.")
         val message = e.message ?: "Generation failed."
         val code = when (e.errorCode) {
             GenAiException.ErrorCode.REQUEST_TOO_LARGE -> "context_exceeded"

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Typechecks the plugin's Swift sources against the iOS simulator SDK, with HostStubs standing in
+# for the NativePHP host app. Matches the host project's Swift 5 language mode and its iOS 18
+# deployment floor, so every Foundation Models call must sit behind #available(iOS 26.0, *).
+set -euo pipefail
+
+cd "$(dirname "$0")/../resources/ios"
+
+xcrun --sdk iphonesimulator swiftc -typecheck \
+    -swift-version 5 \
+    -target arm64-apple-ios18.0-simulator \
+    Sources/*.swift HostStubs/*.swift
+
+echo "iOS sources typecheck."
